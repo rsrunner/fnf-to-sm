@@ -1,7 +1,9 @@
 # fnf_to_sm
+
 Fork of ![shockdude's fnf-to-sm](https://github.com/shockdude/fnf-to-sm).
 
 ## What's new?
+
 - The repository has been reformatted to work like a Python module, for ![mod_to_sm](https://github.com/rsrunner/mod_to_sm).
 - `sm_to_fnf`
   - Added support for `dance-double`.
@@ -12,5 +14,7 @@ Fork of ![shockdude's fnf-to-sm](https://github.com/shockdude/fnf-to-sm).
   - Added `dance-single` support, multiplexing both players into an one-player chart
 
 ## Usage
+
 `python main.py chart(.json|.sm) (difficulty)`
+
 where `difficulty` can be a Stepmania difficulty, if .sm is provided.
