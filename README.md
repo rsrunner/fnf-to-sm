@@ -1,21 +1,16 @@
-# FNF/SM converter
-Roughly convert Friday Night Funkin .json charts to doubles simfiles for StepMania \
-Or convert StepMania simfiles to FNF charts. \
-Very WIP but it works, kinda.
+# fnf_to_sm
+Fork of ![shockdude's fnf-to-sm](https://github.com/shockdude/fnf-to-sm).
 
-Usage: Drag-and-drop the FNF .json chart or a StepMania .sm simfile onto `fnf-to-sm.exe` \
-Or use the command line: `python fnf-to-sm.py [chart_file]`
+## What's new?
+- The repository has been reformatted to work like a Python module, for ![mod_to_sm](https://github.com/rsrunner/mod_to_sm).
+- sm_to_fnf
+- - Added support for `dance-double`.
+- - - Comes with automatic `must_hit_section` algorithm
+- - Add the option to choose difficulties through the command line
+- fnf_to_sm
+- - Support for Tricky mines
+- - Added `dance-single` support, multiplexing both players into an one-player chart
 
-For FNF-to-SM, if you input the Normal difficulty .json, and have the \
-easy & hard .jsons in the same folder, then FNF-to-SM will output \
-a single .sm with all 3 difficulties.
-
-SM-to-FNF currently only supports Challenge Single difficulty. \
-This fork adds Challenge Double difficulty. `must-hit-section`s are automatically calculated based on note count per section.
-
-Written by shockdude in Python 3.7 \
-Original chart-to-sm.js by Paturages \
-https://github.com/Paturages/
-
-Project Outfox (active StepMania fork): https://projectmoon.dance/ \
-Friday Night Funkin: https://ninja-muffin24.itch.io/funkin
+## Usage
+`python main.py chart(.json|.sm) (difficulty)`
+where `difficulty` can be a Stepmania difficulty, if .sm is provided.
