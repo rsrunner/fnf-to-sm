@@ -98,7 +98,7 @@ def get_songname(infile):
 		chart_json = json.loads(chart.read().strip('\0'))
 		return chart_json["song"]["song"]
 
-def fnf_to_sm(infile, outfile=None):
+def fnf_to_sm(infile, outfile=None, double=False, multiplex=False):
 	chart_jsons = []
 	
 	# given a normal difficulty .json,
@@ -177,17 +177,19 @@ def fnf_to_sm(infile, outfile=None):
 			# write .sm header
 			sm_header = "#TITLE:{}\n".format(song_name)
 			sm_header += "#MUSIC:{}.ogg;\n".format(song_name)
+			sm_header += "#CREDIT:fnf_to_sm;"
 			sm_header += bpms
 
 		notes = {}
 		last_note = 0
 		diff_value = 1
-		dance_single = True
+		dance_single = not double
 		# convert note timestamps to ticks
-		if dance_single is True:
-			NUM_COLUMNS = 4
-		else:
+		if double is True:
 			NUM_COLUMNS = 8
+		else:
+			NUM_COLUMNS = 4
+
 		for i in range(num_sections):
 			section = song_notes[i]
 			section_notes = section["sectionNotes"]
@@ -198,8 +200,7 @@ def fnf_to_sm(infile, outfile=None):
 			#print(f"duet or jump at {list(dupticks)}\n{ticks}")
 			for section_note in section_notes:
 				tick = timeToTick(section_note[0])
-				note = section_note[1]
-				note = int(note)
+				note = int(section_note[1])
 
 				# hasDuetOrJump = (section_note[0] in dupticks)
 
@@ -212,16 +213,20 @@ def fnf_to_sm(infile, outfile=None):
 				if section["mustHitSection"]:
 						note = (note + 4) % 8
 
-				if dance_single is True:
-					notes_arr = [x[1] % 8 for x in section_notes]
-					val_arr = [x >= 4 for x in notes_arr]
-					if len(val_arr) <= 0:
-						score = 100
+				if double is False:
+					if multiplex is True:
+						notes_arr = [x[1] % 8 for x in section_notes]
+						val_arr = [x >= 4 for x in notes_arr]
+						if len(val_arr) <= 0:
+							score = 100
+						else:
+							score = (val_arr.count(True)/len(val_arr))*100
+						# print(f"{val_arr.count(True)} out of {len(val_arr)} ({score}%)")
+						if score > 0:
+							continue
 					else:
-						score = (val_arr.count(True)/len(val_arr))*100
-					# print(f"{val_arr.count(True)} out of {len(val_arr)} ({score}%)")
-					if score > 0:
-						continue
+						if note < 4:
+							continue
 					note = note%4
 
 				length = section_note[2]
@@ -251,10 +256,10 @@ def fnf_to_sm(infile, outfile=None):
 			# write chart & difficulty info
 			sm_notes += "\n"
 			sm_notes += "#NOTES:\n"
-			if dance_single:
-				sm_notes += "	  dance-single:\n"
-			else:
+			if double:
 				sm_notes += "	  dance-double:\n"
+			else:
+				sm_notes += "	  dance-single:\n"
 			sm_notes += "	  :\n"
 			sm_notes += "	  {}:\n".format(chart_json["diff"]) # e.g. Challenge:
 			sm_notes += "	  {}:\n".format(diff_value)
@@ -464,18 +469,78 @@ def usage():
 	sys.exit(1)
 
 def main():
+	argumentos = {
+		"double": {
+			"flag": "d",
+			"value": False
+		},
+		"multiplex": {
+			"flag": "m",
+			"value": False
+		},
+		"ffmpeg": {
+			"flag": "f",
+			"value": False
+		}
+	}
+
+	reg = re.compile(r"-[{}]+".format("".join([y["flag"] for x, y in argumentos.items()])))
+
+	def getArg(k):
+		return argumentos[k]["value"]
+
+	def getFlag(k):
+		return argumentos[k]["flag"]
+
+	def findFlag(k):
+		return list(filter(lambda x: x[1].get("flag") == k, argumentos.items()))
+
+	def setArg(k,v):
+		found = findFlag(k)
+		if len(found) >= 1:
+			_k = found[0][0]
+		else:
+			_k = k
+		if _k in argumentos:
+			argumentos[_k]["value"] = v
+			return argumentos[_k]["value"]
+		return None
+
+	def argAsDict():
+		return {k:v["value"] for k,v in argumentos.items()}
+
+	for a in sys.argv:
+		_match = reg.match(a)
+		if _match:
+			flags = a[1:]
+			for char in flags:
+				if setArg(char, True) is None:
+					print("warning: unrecognized flag: -{}".format(char))
+
 	if len(sys.argv) < 2:
 		print("Error: not enough arguments")
 		usage()
 	
 	infile = sys.argv[1]
+
+	iargs = [x.lower() for x in sys.argv]
+	try:
+		cool = iargs.index("--diff")
+		_next = cool+1
+		if _next <= len(iargs):
+			val = iargs[_next]
+			diff = val
+	except ValueError:
+		# this is an optional argument
+		pass
+
 	if len(sys.argv) < 3:
 		diff = None
 	else:
 		diff = sys.argv[2]
 	infile_name, infile_ext = os.path.splitext(os.path.basename(infile))
 	if infile_ext == FNF_EXT:
-		fnf_to_sm(infile)
+		fnf_to_sm(infile, **argAsDict())
 	elif infile_ext == SM_EXT:
 		sm_to_fnf(infile, diff, True)
 	else:

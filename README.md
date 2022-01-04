@@ -12,9 +12,11 @@ Fork of ![shockdude's fnf-to-sm](https://github.com/shockdude/fnf-to-sm).
 - `fnf_to_sm`
   - Support for Tricky mines
   - Added `dance-single` support, multiplexing both players into an one-player chart
+  - `dance-single` and `multiplex` tactic are both optional flags
+    - `-m` activates multiplex, `-d` activates `dance-double`
 
 ## Usage
 
-`python main.py chart(.json|.sm) (difficulty)`
+`python main.py chart(.json|.sm) (difficulty) [-dm]`
 
 where `difficulty` can be a Stepmania difficulty, if .sm is provided.
